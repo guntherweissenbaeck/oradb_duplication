@@ -9,6 +9,16 @@
 ####################################################################################################
 
 
+# check the size of the temp tablespace and write it to a file
+sqlplus -s /nolog <<EOF
+sqlplus /@tns_alias
+set pagesize 0 feedback off verify off heading off echo off;
+spool /tmp/temp_tablespace_size.txt
+select sum(bytes)/1024/1024 from dba_temp_files;
+spool off;
+exit;
+EOF
+
 # add a second temp file to the oracle database temp02.dbf
 sqlplus -s /nolog <<EOF
 sqlplus /@tns_alias
@@ -29,11 +39,13 @@ if [ -f /oradb/temp01.dbf ]; then
 fi
 
 # add the first temp file to the oracle database temp01.dbf in the folder /oradb/temp01.dbf
+# reading the size from the file /tmp/temp_tablespace_size.txt
 sqlplus -s /nolog <<EOF
 sqlplus /@tns_alias
 alter tablespace temp add tempfile '/oradata/temp01.dbf' size 100M autoextend on next 100M maxsize 1000M;
 exit;
 EOF
+
 
 # delete the second temp file from the oracle database temp02.dbf
 sqlplus -s /nolog <<EOF
